@@ -3,11 +3,9 @@ use std::fs::read_to_string;
 
 const INPUT_FILE: &str = "input.txt";
 
-fn main() {
-    let content = read_to_string(INPUT_FILE).unwrap();
-
+fn part_one(lines: &Vec<&str>) {
     let mut sum = 0;
-    for line in content.trim().split("\n") {
+    for line in lines {
         let mut l: u32 = 0;
         let mut r: u32 = 0;
         for c in line.chars() {
@@ -26,7 +24,9 @@ fn main() {
         sum += r + (l * 10);
     }
     println!("Total sum: {}", sum);
+}
 
+fn part_two(lines: &Vec<&str>) {
     let numbers = vec![
         "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
     ];
@@ -39,8 +39,8 @@ fn main() {
         len_map.insert(number, len);
     }
 
-    sum = 0;
-    for line in content.trim().split("\n") {
+    let mut sum = 0;
+    for line in lines {
         let mut l: u32 = 0;
         let mut r: u32 = 0;
 
@@ -87,4 +87,13 @@ fn main() {
         sum += r + (l * 10);
     }
     println!("Fixed total sum: {}", sum);
+}
+
+fn main() {
+    let content = read_to_string(INPUT_FILE).unwrap();
+
+    let lines: Vec<&str> = content.trim().split("\n").collect();
+
+    part_one(&lines);
+    part_two(&lines);
 }
