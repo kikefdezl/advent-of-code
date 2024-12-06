@@ -1,9 +1,10 @@
-// Wanted to check, so I implemented part 2 in 2 different ways:
-// Checking for max steps ended up being much faster.
+// I implemented part 2 in two different ways:
+// - Using a HashSet to check if a (x, y, dx, dy) ever repeats.
+// - Counting steps and exiting if we surpass the max
+//   possible steps (the area of the map).
+// Counting steps ended up being much faster.
 
-use std::collections::HashSet;
 use std::fs::read_to_string;
-use std::time::Instant;
 
 const INPUT_FILE: &str = "input.txt";
 
@@ -99,8 +100,7 @@ fn part_one(mut map: Map) {
     println!("Total visited places: {}", count);
 }
 
-fn part_two_with_hashset(map: Map) {
-    let start = Instant::now();
+fn part_two(map: Map) {
     let mut count = 0;
     for y in 0..map.height {
         for x in 0..map.width {
@@ -113,81 +113,15 @@ fn part_two_with_hashset(map: Map) {
             let mut obstacle_map = map.clone();
             obstacle_map.data[y as usize][x as usize] = OBSTACLE;
 
-            if is_map_endless_loop_with_hashset(obstacle_map) {
+            if is_map_endless_loop(obstacle_map) {
                 count += 1;
             }
         }
     }
-    println!(
-        "Total infinite loop positions: {} ({:.2?} using hashsets)",
-        count,
-        Instant::now() - start
-    );
+    println!("Total infinite loop positions: {}", count);
 }
 
-fn is_map_endless_loop_with_hashset(mut map: Map) -> bool {
-    // finds endless loop by saving all positions in a hashset
-    let (mut x, mut y) = map.start;
-    let mut dx = START_DX;
-    let mut dy = START_DY;
-
-    let mut visited: HashSet<(isize, isize, isize, isize)> = HashSet::new();
-    visited.insert((x, y, dx, dy));
-    loop {
-        let mut nx = x + dx;
-        let mut ny = y + dy;
-
-        if nx < 0 || nx >= map.width as isize || ny < 0 || ny >= map.height as isize {
-            return false;
-        }
-
-        while map.data[ny as usize][nx as usize] == OBSTACLE {
-            nx -= dx;
-            ny -= dy;
-            (dx, dy) = rotate(dx, dy);
-            nx += dx;
-            ny += dy;
-        }
-
-        x = nx;
-        y = ny;
-        if visited.contains(&(x, y, dx, dy)) {
-            return true;
-        }
-        if map.data[y as usize][x as usize] == UNVISITED {
-            map.data[y as usize][x as usize] = VISITED;
-            visited.insert((x, y, dx, dy));
-        }
-    }
-}
-
-fn part_two_with_max_steps(map: Map) {
-    let start = Instant::now();
-    let mut count = 0;
-    for y in 0..map.height {
-        for x in 0..map.width {
-            if map.data[y as usize][x as usize] == OBSTACLE
-                || map.data[y as usize][x as usize] == START
-            {
-                continue;
-            }
-
-            let mut obstacle_map = map.clone();
-            obstacle_map.data[y as usize][x as usize] = OBSTACLE;
-
-            if is_map_endless_loop_with_max_steps(obstacle_map) {
-                count += 1;
-            }
-        }
-    }
-    println!(
-        "Total infinite loop positions: {} ({:.2?} using max steps)",
-        count,
-        Instant::now() - start
-    );
-}
-
-fn is_map_endless_loop_with_max_steps(mut map: Map) -> bool {
+fn is_map_endless_loop(mut map: Map) -> bool {
     // finds endless loop by exiting if we surpass the max amount of possible
     // steps (area of the map).
     let (mut x, mut y) = map.start;
@@ -231,6 +165,5 @@ fn main() {
     let map = Map::new(data);
 
     part_one(map.clone());
-    part_two_with_max_steps(map.clone());
-    // part_two_with_hashset(map);
+    part_two(map.clone());
 }
