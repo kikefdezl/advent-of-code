@@ -8,6 +8,7 @@
 
 My solutions for [Advent of Code](https://adventofcode.com/)!
 
+- [2015](https://github.com/kikefdezl/advent-of-code/tree/main/2015)
 - [2023](https://github.com/kikefdezl/advent-of-code/tree/main/2023)
 - [2024](https://github.com/kikefdezl/advent-of-code/tree/main/2024)
 
