@@ -88,8 +88,9 @@ fn part_one(mut robots: Vec<Robot>) {
 }
 
 fn part_two(mut robots: Vec<Robot>) {
-    let mut frame = 0;
+    let mut max_frame = 0;
     let mut max_consecutives = 0;
+    let mut max_area = Vec::new();
     for s in 1..SECONDS_10K {
         let mut area = vec![vec![0; AREA_WIDTH as usize]; AREA_HEIGHT as usize];
 
@@ -98,22 +99,33 @@ fn part_two(mut robots: Vec<Robot>) {
             area[robot.y as usize][robot.x as usize] += 1;
         }
 
-        for row in area {
+        for row in &area {
             let mut consecutives = 0;
             for cell in row {
-                if cell == 0 {
+                if *cell == 0 {
                     consecutives = 0;
                 } else {
                     consecutives += 1;
                     if consecutives > max_consecutives {
                         max_consecutives = consecutives;
-                        frame = s;
+                        max_frame = s;
+                        max_area = area.clone();
                     }
                 }
             }
         }
     }
-    println!("After {} seconds has most consecutives", frame);
+    println!("After {} seconds has most consecutives", max_frame);
+    for row in max_area {
+        for cell in row {
+            if cell == 0 {
+                print!(" ");
+            } else {
+                print!("{}", cell);
+            }
+        }
+        println!("");
+    }
 }
 
 fn main() {
