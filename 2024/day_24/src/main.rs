@@ -241,9 +241,11 @@ fn and_output_is_or_input(
 ) -> Vec<String> {
     let mut bad_wires = Vec::new();
     for gate in gates {
-        // pjf is my bit-0 input carry, this has to be changed
-        // for other inputs
-        if gate.op != GateOp::AND || gate.output == "pjf" {
+        if gate.op != GateOp::AND
+            // the output of the 0th bit doesn't fulfill this condition
+            || gate.inputs == (String::from("x00"), String::from("y00"))
+            || gate.inputs == (String::from("y00"), String::from("x00"))
+        {
             continue;
         }
         let next_gates = input_map.get(&gate.output).unwrap();
