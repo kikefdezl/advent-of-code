@@ -1,5 +1,6 @@
 # Generated files
 **/target
+**/build
 
-# Inputs fixtures
+# Input files
 **/input.*
