@@ -25,7 +25,7 @@ func parseRotations(input string) ([]Rotation, error) {
 			break
 		}
 
-		direction := rune(line[0])
+		direction := byte(line[0])
 		if direction != 'L' && direction != 'R' {
 			return nil, fmt.Errorf("Unknown direction")
 		}
@@ -36,7 +36,7 @@ func parseRotations(input string) ([]Rotation, error) {
 		}
 
 		rotations = append(rotations, Rotation{
-			direction: byte(line[0]),
+			direction: direction,
 			count:     int(count),
 		})
 	}
