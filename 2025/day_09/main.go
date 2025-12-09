@@ -60,58 +60,46 @@ func part1(tiles []Tile) {
 	fmt.Println("Max Red Tile rectangle has area", maxRect)
 }
 
-func connectTiles(tileA *Tile, tileB *Tile) []Tile {
-	newTiles := make([]Tile, 0)
-	if tileA.x == tileB.x {
-		minY := min(tileA.y, tileB.y)
-		maxY := max(tileA.y, tileB.y)
-		for y := minY; y < maxY; y++ {
-			newTiles = append(newTiles, Tile{x: tileA.x, y: y})
-		}
-	} else if tileA.y == tileB.y {
-		minX := min(tileA.x, tileB.x)
-		maxX := max(tileA.x, tileB.x)
-		for x := minX; x < maxX; x++ {
-			newTiles = append(newTiles, Tile{x: x, y: tileA.y})
-		}
-	} else {
-		fmt.Println("tiles aren't aligned!")
-	}
-	return newTiles
+type Segment struct {
+	A Tile
+	B Tile
 }
 
-func computeGreenTiles(redTiles []Tile) []Tile {
-	greenTiles := make([]Tile, 0, len(redTiles)*10)
+func computeGreenSegments(redTiles []Tile) []Segment {
+	segments := make([]Segment, 0, len(redTiles)+1)
 	for i := range len(redTiles) - 1 {
-		newTiles := connectTiles(&redTiles[i], &redTiles[i+1])
-		greenTiles = append(greenTiles, newTiles...)
+		segment := Segment{A: redTiles[i], B: redTiles[i+1]}
+		segments = append(segments, segment)
 	}
 	// connect the last two
-	newTiles := connectTiles(&redTiles[len(redTiles)-1], &redTiles[0])
-	greenTiles = append(greenTiles, newTiles...)
-	return greenTiles
+	segments = append(segments, Segment{A: redTiles[len(redTiles)-1], B: redTiles[0]})
+	return segments
 }
 
-func tileInRectangle(tile Tile, rectA Tile, rectB Tile) bool {
-	minX := min(rectA.x, rectB.x)
-	maxX := max(rectA.x, rectB.x)
-	minY := min(rectA.y, rectB.y)
-	maxY := max(rectA.y, rectB.y)
+func (s *Segment) intersectsRect(rectA Tile, rectB Tile) bool {
+	recMinX := min(rectA.x, rectB.x) + 1
+	recMaxX := max(rectA.x, rectB.x) - 1
+	recMinY := min(rectA.y, rectB.y) + 1
+	recMaxY := max(rectA.y, rectB.y) - 1
 
-	if tile.x > minX && tile.x < maxX && tile.y > minY && tile.y < maxY {
-		return true
+	segMinX := min(s.A.x, s.B.x)
+	segMaxX := max(s.A.x, s.B.x)
+	segMinY := min(s.A.y, s.B.y)
+	segMaxY := max(s.A.y, s.B.y)
+
+	if segMaxX < recMinX || segMinX > recMaxX {
+		return false
 	}
-	return false
+	if segMaxY < recMinY || segMinY > recMaxY {
+		return false
+	}
+	return true
 }
 
-// I figured that a way to know whether a rectangle is illegal:
-// If any tile of the ribbon that connects all the red tiles is inside the rectangle, 
-// it's invalid.
-//
-// So this is a bruteforce approach that for every rectangle pair we check whether 
-// any of the perimeter green tiles are in it.
+// Compute the green tile segments. For every possible rectangle, if any green segment
+// intersects it's invalid, so we discard.
 func part2(redTiles []Tile) {
-	greenTiles := computeGreenTiles(redTiles)
+	greenSegments := computeGreenSegments(redTiles)
 
 	maxRect := 0
 	for i := 0; i < len(redTiles)-1; i++ {
@@ -121,8 +109,8 @@ func part2(redTiles []Tile) {
 			if area < maxRect {
 				continue
 			}
-			for _, greenTile := range greenTiles {
-				if tileInRectangle(greenTile, redTiles[i], redTiles[j]) {
+			for _, greenSegment := range greenSegments {
+				if greenSegment.intersectsRect(redTiles[i], redTiles[j]) {
 					continue main
 				}
 			}
