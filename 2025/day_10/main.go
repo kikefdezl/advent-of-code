@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math"
 	"os"
 	"slices"
 	"strconv"
@@ -43,19 +44,6 @@ func (l Lights) press(button Button) Lights {
 type Button []int
 
 type Joltages []int
-
-func (j Joltages) equal(other Joltages) bool {
-	return slices.Equal(j, other)
-}
-
-func (j Joltages) press(button Button) Joltages {
-	result := make(Joltages, len(j))
-	copy(result, j)
-	for _, b := range button {
-		result[b] += 1
-	}
-	return result
-}
 
 type Machine struct {
 	buttons        []Button
@@ -166,6 +154,152 @@ func part1(machines []Machine) {
 	fmt.Println("Sum of lowest needed keypresses for turning lights on:", sum)
 }
 
+const (
+	N   = 13
+	Eps = 1e-8
+)
+
+type Equation struct {
+	a [N]float64
+	b float64
+}
+
+type Variable struct {
+	substitution Equation
+	independent  bool
+	value        int
+	upperBound   int
+}
+
+func eval(v Variable, vals [N]int) float64 {
+	if v.independent {
+		return float64(v.value)
+	}
+
+	x := v.substitution.b
+	for i := range N {
+		x += v.substitution.a[i] * float64(vals[i])
+	}
+	return x
+}
+
+func (m *Machine) PressesToMeetJoltage() int {
+	vars := make([]Variable, len(m.buttons))
+	for i := range vars {
+		vars[i].upperBound = math.MaxInt
+	}
+
+	equations := make([]Equation, len(m.targetJoltages))
+	for i, joltage := range m.targetJoltages {
+		equation := Equation{b: float64(-joltage)}
+		for j, btn := range m.buttons {
+			if slices.Contains(btn, i) {
+				equation.a[j] = 1
+				vars[j].upperBound = joltage
+			}
+		}
+		equations[i] = equation
+	}
+
+	for i := range vars {
+		vars[i].independent = true
+		for _, eq := range equations {
+			if expr, ok := isolate(eq, i); ok {
+				vars[i].independent = false
+				vars[i].substitution = expr
+				for j := range equations {
+					equations[j] = substitute(equations[j], i, expr)
+				}
+				break
+			}
+		}
+	}
+
+	free := make([]int, 0, len(vars))
+	for i, v := range vars {
+		if v.independent {
+			free = append(free, i)
+		}
+	}
+
+	best, _ := evalRecursive(vars, free, 0)
+	return best
+}
+
+func isolate(eq Equation, idx int) (Equation, bool) {
+	a := -eq.a[idx]
+	if math.Abs(a) < Eps {
+		return Equation{}, false
+	}
+
+	r := Equation{b: eq.b / a}
+	for i := range len(eq.a) {
+		if i != idx {
+			r.a[i] = eq.a[i] / a
+		}
+	}
+	return r, true
+}
+
+func substitute(eq Equation, idx int, expr Equation) Equation {
+	r := Equation{}
+
+	a := eq.a[idx]
+	eq.a[idx] = 0
+
+	for i := range len(eq.a) {
+		r.a[i] = eq.a[i] + a*expr.a[i]
+	}
+	r.b = eq.b + a*expr.b
+	return r
+}
+
+func evalRecursive(vars []Variable, free []int, index int) (int, bool) {
+	if index == len(free) {
+		vals := [N]int{}
+		total := 0
+
+		for i := len(vars) - 1; i >= 0; i-- {
+			x := eval(vars[i], vals)
+			if x < -Eps || math.Abs(x-math.Round(x)) > Eps {
+				return 0, false
+			}
+			vals[i] = int(math.Round(x))
+			total += vals[i]
+		}
+
+		return total, true
+	}
+
+	best, found := math.MaxInt, false
+	for x := 0; x <= vars[free[index]].upperBound; x++ {
+		vars[free[index]].value = x
+		total, ok := evalRecursive(vars, free, index+1)
+
+		if ok {
+			found = true
+			best = min(best, total)
+		}
+	}
+
+	if found {
+		return best, true
+	} else {
+		return 0, false
+	}
+}
+
+// I admit part2 stumped me and I had to search online for help from other people.
+// This method uses Gaussian Elimination to constrain dependent variables and then find a solution
+// by checking combinations.
+func part2(machines []Machine) {
+	sum := 0
+	for _, machine := range machines {
+		sum += machine.PressesToMeetJoltage()
+	}
+	fmt.Println("Sum of lowest needed keypresses for setting joltages:", sum)
+}
+
 func main() {
 	input, err := os.ReadFile(InputFile)
 	if err != nil {
@@ -178,4 +312,5 @@ func main() {
 		os.Exit(1)
 	}
 	part1(machines)
+	part2(machines)
 }
