@@ -100,18 +100,16 @@ func part1(presents []Present, regions []RegionData) {
 	sum := 0
 	for _, region := range regions {
 		regionArea := region.area()
-		fmt.Println("area of the region", regionArea)
 		presentsArea := 0
 		for presentId, presentCount := range region.presents {
 			presentsArea += presentCount * presents[presentId].area()
 		}
-
-		fmt.Println("presents area", presentsArea)
 		if presentsArea < regionArea {
+			fmt.Println("Presents with area", presentsArea, "should fit in region with area:", regionArea)
 			sum++
 		}
 	}
-	fmt.Printf("A total of %d regions fit all presents\n", sum)
+	fmt.Printf("A total of %d regions fit all presents by area \n", sum)
 }
 
 func main() {
@@ -125,7 +123,5 @@ func main() {
 		fmt.Println("error parsing input", err)
 		os.Exit(1)
 	}
-	fmt.Println(presents)
-	fmt.Println(regions)
 	part1(presents, regions)
 }
