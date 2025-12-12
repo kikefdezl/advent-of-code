@@ -9,7 +9,7 @@
 | [2015](https://github.com/kikefdezl/advent-of-code/tree/main/2015) | C        | ⏳ In progress |
 | [2023](https://github.com/kikefdezl/advent-of-code/tree/main/2023) | Rust     | ⏳ In progress |
 | [2024](https://github.com/kikefdezl/advent-of-code/tree/main/2024) | Rust     | ✅ 25/25       |
-| [2025](https://github.com/kikefdezl/advent-of-code/tree/main/2024) | Go       | ✅ 12/12       |
+| [2025](https://github.com/kikefdezl/advent-of-code/tree/main/2025) | Go       | ✅ 12/12       |
 
 ---
 
