@@ -99,6 +99,14 @@ impl Brick {
     }
 }
 
+fn parse_bricks(s: &str) -> Vec<Brick> {
+    let mut bricks = Vec::new();
+    for line in s.lines() {
+        bricks.push(Brick::from_str(line));
+    }
+    bricks
+}
+
 type BrickId = usize;
 
 struct Layer {
@@ -215,35 +223,70 @@ fn simulate_fall(bricks: &mut [Brick]) -> Space {
     space
 }
 
-fn part1(bricks: &mut [Brick]) {
+fn count_affected_bricks(removed: BrickId, supports: &HashMap<BrickId, Vec<BrickId>>) -> usize {
+    fn _count_affected_bricks(
+        removed: &mut HashSet<BrickId>,
+        supports: &HashMap<BrickId, Vec<BrickId>>,
+        supported_by: &HashMap<BrickId, Vec<BrickId>>,
+    ) -> usize {
+        let mut bricks_above = HashSet::new();
+        for rem in removed.iter() {
+            let supported = supports.get(rem).unwrap();
+            for supp in supported {
+                if !removed.contains(supp) {
+                    bricks_above.insert(supp);
+                }
+            }
+        }
+
+        let mut new_removed = HashSet::new();
+        for brick_above in bricks_above {
+            let supports = supported_by.get(brick_above).unwrap();
+            if supports.iter().all(|s| removed.contains(s)) {
+                new_removed.insert(brick_above);
+            }
+        }
+
+        if !new_removed.is_empty() {
+            removed.extend(new_removed);
+            return _count_affected_bricks(removed, supports, supported_by);
+        }
+        removed.len()
+    }
+
+    let supported_by = invert_map(supports);
+    let mut removed_set = HashSet::new();
+    removed_set.insert(removed);
+    _count_affected_bricks(&mut removed_set, supports, &supported_by) - 1
+}
+
+fn parts1and2(bricks: &mut [Brick]) {
     let space = simulate_fall(bricks);
 
     let supports_map = space.compute_supports_map();
     let supported_by_map = invert_map(&supports_map);
 
     let mut sum = 0;
-    'outer: for (brick, bricks_above) in supports_map {
+    'outer: for (brick, bricks_above) in &supports_map {
         for brick_above in bricks_above {
-            let supports = supported_by_map.get(&brick_above).unwrap();
-            if supports.iter().all(|b| *b == brick) {
+            let supports = supported_by_map.get(brick_above).unwrap();
+            if supports.iter().all(|b| b == brick) {
                 continue 'outer;
             }
         }
         sum += 1;
     }
     println!("{} bricks can be safely desintegrated", sum);
-}
 
-fn parse_bricks(s: &str) -> Vec<Brick> {
-    let mut bricks = Vec::new();
-    for line in s.lines() {
-        bricks.push(Brick::from_str(line));
+    sum = 0;
+    for brick_id in supports_map.keys() {
+        sum += count_affected_bricks(*brick_id, &supports_map);
     }
-    bricks
+    println!("{} total bricks would be affected", sum);
 }
 
 fn main() {
     let input = read_to_string(INPUT_FILE).unwrap();
     let mut bricks = parse_bricks(&input);
-    part1(&mut bricks);
+    parts1and2(&mut bricks);
 }
