@@ -59,21 +59,6 @@ enum Tile {
     Slope(Direction),
 }
 
-impl Tile {
-    fn print(&self) {
-        match self {
-            Tile::Path => print!("."),
-            Tile::Forest => print!("#"),
-            Tile::Slope(d) => match d {
-                Direction::North => print!("^"),
-                Direction::East => print!(">"),
-                Direction::South => print!("v"),
-                Direction::West => print!("<"),
-            },
-        }
-    }
-}
-
 struct Map {
     tiles: Vec<Vec<Tile>>,
     start: Position,
@@ -152,24 +137,6 @@ impl Map {
         }
         true
     }
-
-    fn print(&self, route: &Vec<Position>) {
-        for (y, row) in self.tiles.iter().enumerate() {
-            for (x, tile) in row.iter().enumerate() {
-                let pos = Position { x, y };
-                if route.contains(&pos) {
-                    print!("O");
-                } else {
-                    tile.print();
-                }
-            }
-            println!();
-        }
-        println!(
-            "Start: {},{} End: {},{}",
-            self.start.x, self.start.y, self.end.x, self.end.y
-        );
-    }
 }
 
 #[derive(Clone, Debug)]
@@ -223,11 +190,47 @@ fn part1(map: &Map) {
         }
     }
 
-    println!("Longest hike {}", longest.len);
+    println!("Longest hike with slippery slopes: {}", longest.len);
+}
+
+fn longest_path(
+    map: &Map,
+    pos: &Position,
+    visited: &mut HashSet<Position>,
+    len: usize,
+    best: &mut usize,
+) {
+    if *pos == map.end && len > *best {
+        *best = len;
+    }
+
+    for dir in Direction::all() {
+        if !map.can_move(pos, &dir) {
+            continue;
+        }
+
+        let next = pos.neighbor(&dir);
+        if map.get(&next) == Tile::Forest || visited.contains(&next) {
+            continue;
+        }
+
+        visited.insert(next.clone());
+        longest_path(map, &next, visited, len + 1, best);
+        visited.remove(&next);
+    }
+}
+
+fn part2(map: &Map) {
+    let start = map.start.clone();
+    let mut visited = HashSet::from([start.clone()]);
+    let mut best = 0;
+    longest_path(map, &start, &mut visited, 0, &mut best);
+    println!("Without them: {}", best);
 }
 
 fn main() {
     let input = read_to_string(INPUT_FILE).unwrap();
     let map = Map::from_str(&input);
     part1(&map);
+    part2(&map);
 }
