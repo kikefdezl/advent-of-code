@@ -7,8 +7,8 @@ const INPUT_FILE: &str = "input.txt";
 
 #[derive(Clone, Hash, Eq, PartialEq, Debug)]
 struct Position {
-    x: usize,
-    y: usize,
+    x: u8,
+    y: u8,
 }
 
 impl Position {
@@ -85,7 +85,7 @@ impl Map {
             tiles.push(row);
         }
         let start = Position {
-            x: tiles[0].iter().position(|x| *x == Tile::Path).unwrap(),
+            x: tiles[0].iter().position(|x| *x == Tile::Path).unwrap() as u8,
             y: 0,
         };
         let end = Position {
@@ -94,22 +94,23 @@ impl Map {
                 .unwrap()
                 .iter()
                 .position(|x| *x == Tile::Path)
-                .unwrap(),
-            y: tiles.len() - 1,
+                .unwrap() as u8,
+            y: (tiles.len() - 1) as u8,
         };
+
         Map { tiles, start, end }
     }
 
     fn get(&self, pos: &Position) -> Tile {
-        self.tiles[pos.y][pos.x].clone()
+        self.tiles[pos.y as usize][pos.x as usize].clone()
     }
 
-    fn width(&self) -> usize {
-        self.tiles[0].len()
+    fn width(&self) -> u8 {
+        self.tiles[0].len() as u8
     }
 
-    fn height(&self) -> usize {
-        self.tiles.len()
+    fn height(&self) -> u8 {
+        self.tiles.len() as u8
     }
 
     fn can_move(&self, pos: &Position, dir: &Direction) -> bool {
