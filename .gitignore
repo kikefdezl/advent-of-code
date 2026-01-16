@@ -1,7 +1,3 @@
-# Generated files
-**/target
-**/build
-
 # Input files
 **/input.*
 
@@ -9,3 +5,17 @@
 **/*Advent*.html
 **/*Advent*/*.js
 **/*Advent*/*.css
+
+# Rust
+**/target
+
+# C
+**/build
+
+# TS
+node_modules/
+**/package.json
+**/package-lock.json
+
+
+
