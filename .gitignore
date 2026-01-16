@@ -4,3 +4,8 @@
 
 # Input files
 **/input.*
+
+# Downloaded AoC HTMLs
+**/*Advent*.html
+**/*Advent*/*.js
+**/*Advent*/*.css
