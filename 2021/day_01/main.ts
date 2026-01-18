@@ -18,7 +18,6 @@ function solve(heights: number[], windowSize: number) {
       sumA += heights[i - j - 1];
       sumB += heights[i - j];
     }
-    console.log(sumA);
     if (sumB > sumA) {
       count += 1;
     }
